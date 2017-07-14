@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   visual_mtt
   message_generation
   image_transport
+  tf
 )
 
 ## System dependencies are found with CMake's conventions

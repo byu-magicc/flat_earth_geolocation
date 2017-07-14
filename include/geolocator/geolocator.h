@@ -3,9 +3,11 @@
 #include <iostream>
 #include <stdint.h>
 #include <vector>
+#include <math.h>
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
+#include <tf/tf.h>
 
 #include <eigen3/Eigen/Dense>
 
@@ -43,7 +45,7 @@ namespace geolocator {
         void cb_tracks(const visual_mtt::TracksPtr& msg);
 
         // geolocation algorithm
-        void transform(const Eigen::MatrixX3d& measurements,
+        void transform(Eigen::MatrixX3d& measurements,
                 double pn, double pe, double pd,        // uav position north, east, down
                 double phi, double theta, double psi,   // uav roll, pitch, yaw
                 double gr, double gp, double gy);       // gimbal roll, pitch, yaw
@@ -53,7 +55,7 @@ namespace geolocator {
         Eigen::Matrix3d R_v1_to_v2(double theta);
         Eigen::Matrix3d R_v_to_v1(double psi);
         Eigen::Matrix3d R_v_to_b(double phi, double theta, double psi);
-        Eigen::Matrix3d R_g_to_b(double r, double p, double y);
+        Eigen::Matrix3d R_b_to_g(double r, double p, double y);
         Eigen::Matrix3d R_g_to_c();
         Eigen::Vector3d t_b_to_g();
     };
