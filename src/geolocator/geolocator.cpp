@@ -53,9 +53,14 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         return;
     }
 
+    // Create a new tracks message for 3D points
+    visual_mtt::Tracks new_msg;
+
     // skip if there are no tracks
-    if (msg->tracks.size() == 0)
+    if (msg->tracks.size() == 0) {
+        pub_tracks_.publish(new_msg);
         return;
+    }
 
     // Extract the position measurement of each track
     Eigen::MatrixX3d measurements(msg->tracks.size(), 3);
@@ -71,7 +76,7 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     // UAV Position
     double pn =  pose_->pose.position.x;
     double pe = -pose_->pose.position.y;
-    double pd = -pose_->pose.position.z;
+    double pd = -(pose_->pose.position.z + 6);
 
     // UAV Orientation: quaternion to euler angles
     double phi, theta, psi;
@@ -84,14 +89,13 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     double el    = -M_PI/4;
     double groll = 0;
     
-    transform(measurements, pn, pe, pd, phi, theta, psi, groll, el, az);
+    transform(measurements, pn, pe, pd, 0, 0, 0, groll, el, az);
 
     //
     // Publish 3D Tracks
     //
 
     // Create a new message and copy relevant information from old message
-    visual_mtt::Tracks new_msg;
     new_msg.header_frame = msg->header_frame;
     new_msg.header_update.stamp = ros::Time::now();
     new_msg.util = msg->util;

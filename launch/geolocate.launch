@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <launch>
 
-    <arg name="params"          default="default" />
-    <arg name="tuning"          default="false" />
-    <arg name="show_tracks"     default="true" />
-    <arg name="pub_output_img"  default="false" />
-    <arg name="imgtopic"        default="/image_raw" />
+    <arg name="show3d"          default="false" />
 
-    <!-- params:          name of .yaml contained the desired parameter values  -->
-    <!-- tuning:          enables dynamic reconfigure and displays measurements -->
-    <!-- show_tracks:     enables display of tracking results                   -->
-    <!-- pub_output_img:  enables publishing of the tracking result image       -->
-    <!-- imgtopic:        name of the topic that contains the video             -->
+    <!-- show3d:          Show the rviz vizualization of the geolocated targets -->
 
     <!-- ###################################################################### -->
 
@@ -22,8 +14,8 @@
         <remap from="pose" to="mavros/local_position/pose" />
     </node>
 
-    <group if="1">
-
+    <!-- rviz 3d visualization of geolocated tracks -->
+    <group if="$(arg show3d)">
         <node pkg="flat_earth_geolocation" type="plotter" name="plotter" output="screen">
             <remap from="uav_pose" to="mavros/local_position/pose" />
             <remap from="tracks" to="tracks3d" />

@@ -39,9 +39,9 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
 {
 
     static std::vector<uint32_t> recent_ids;
-    std::vector<uint32_t> current_ids(msg->tracks.size());
+    std::vector<uint32_t> current_ids;
 
-    visualization_msgs::MarkerArray mtracks;
+    visualization_msgs::MarkerArray mtracks_add;
     for (int i=0; i<msg->tracks.size(); i++) {
         auto track = msg->tracks[i]; // for convenience
         
@@ -69,21 +69,23 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
         mtrack.color.b = 1.0;
         mtrack.color.a = 1.0;
 
-        mtracks.markers.push_back(mtrack);
+        mtracks_add.markers.push_back(mtrack);
     }
 
     // Now delete the recent_ids that did not show up this iteration
+    visualization_msgs::MarkerArray mtracks_delete;
     for (auto&& id : recent_ids) {
         visualization_msgs::Marker mtrack;
         mtrack.action = visualization_msgs::Marker::DELETE;
         mtrack.id = id;
-        mtracks.markers.push_back(mtrack);
+        mtracks_delete.markers.push_back(mtrack);
     }
 
     // Save the current_ids for the next iteration
     recent_ids.swap(current_ids);
 
-    pub_tracks_.publish(mtracks);
+    pub_tracks_.publish(mtracks_add);
+    pub_tracks_.publish(mtracks_delete);
 }
 
 }
