@@ -22,4 +22,15 @@
         <remap from="pose" to="mavros/local_position/pose" />
     </node>
 
+    <group if="1">
+
+        <node pkg="flat_earth_geolocation" type="plotter" name="plotter" output="screen">
+            <remap from="uav_pose" to="mavros/local_position/pose" />
+            <remap from="tracks" to="tracks3d" />
+        </node>
+
+        <node pkg="tf" type="static_transform_publisher" name="static_tf_pub" args="0 0 0 0 0 0 1 map fcu 10" />
+        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find flat_earth_geolocation)/rviz/geolocation_plotter.rviz" />
+    </group>
+
 </launch>
