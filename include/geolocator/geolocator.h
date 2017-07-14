@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <stdint.h>
 #include <vector>
 
 #include <ros/ros.h>
@@ -12,6 +13,7 @@
 #include "sensor_msgs/Image.h"
 #include "sensor_msgs/CameraInfo.h"
 #include "geometry_msgs/Point.h"
+#include "geometry_msgs/PoseStamped.h"
 
 namespace geolocator {
 
@@ -24,17 +26,24 @@ namespace geolocator {
         // ROS
         ros::NodeHandle nh_;
         image_transport::CameraSubscriber sub_cam_;
+        ros::Subscriber sub_pose_;
         ros::Subscriber sub_tracks_;
-        ros::Subscriber sub_imu_;
         ros::Publisher pub_tracks_;
+
+        // Camera parameters
+        Eigen::Matrix3d cam_matrix_;
+        bool is_cam_matrix_set_ = false;
+
+        // Most recent robot pose
+        geometry_msgs::PoseStampedPtr pose_;
 
         // ROS callbacks
         void cb_cam(const sensor_msgs::ImageConstPtr& frame, const sensor_msgs::CameraInfoConstPtr& cinfo);
+        void cb_pose(const geometry_msgs::PoseStampedPtr& msg);
         void cb_tracks(const visual_mtt::TracksPtr& msg);
-        void cb_imu(const visual_mtt::TracksPtr& msg);
 
         // geolocation algorithm
-        void transform(std::vector<geometry_msgs::Point>& measurements,
+        void transform(const Eigen::MatrixX3d& measurements,
                 double pn, double pe, double pd,        // uav position north, east, down
                 double phi, double theta, double psi,   // uav roll, pitch, yaw
                 double gr, double gp, double gy);       // gimbal roll, pitch, yaw

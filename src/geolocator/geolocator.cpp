@@ -6,73 +6,93 @@ Geolocator::Geolocator()
 {
     // ROS stuff
     image_transport::ImageTransport it(nh_);
-    sub_cam_    = it.subscribeCamera("video", 10, &Geolocator::cb_cam, this);
+    sub_cam_    = it.subscribeCamera("video", 1, &Geolocator::cb_cam, this);
+    sub_pose_   = nh_.subscribe("pose", 1, &Geolocator::cb_pose, this);
     sub_tracks_ = nh_.subscribe("tracks", 1, &Geolocator::cb_tracks, this);
-    sub_imu_    = nh_.subscribe("imu", 1, &Geolocator::cb_imu, this);
     pub_tracks_ = nh_.advertise<visual_mtt::Tracks>("tracks3d", 1);
 }
 
 // ----------------------------------------------------------------------------
+// Private Methods
+// ----------------------------------------------------------------------------
 
 void Geolocator::cb_cam(const sensor_msgs::ImageConstPtr& frame, const sensor_msgs::CameraInfoConstPtr& cinfo)
 {
-    
+    // convert rosmsg vectors to Eigen::Matrix3d
+    for(int i=0; i<9; i++)
+        cam_matrix_(i/3, i%3) = cinfo->K[i];
+
+    is_cam_matrix_set_ = true;
+
+    ROS_WARN("Got camera intrinsic parameters -- shutting down CameraSubscriber");
+
+    // unregister the subscriber
+    sub_cam_.shutdown();
+}
+
+// ----------------------------------------------------------------------------
+
+void Geolocator::cb_pose(const geometry_msgs::PoseStampedPtr& msg)
+{
+    pose_ = msg;
 }
 
 // ----------------------------------------------------------------------------
 
 void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
 {
+    // we cannot geolocate until we have the camera model
+    if (!is_cam_matrix_set_) {
+        ROS_WARN("Camera parameters not yet set -- won't perform geolocation.");
+        return;
+    }
 
+    // we cannot geolocate until we have a robot pose
+    if (pose_ == nullptr) {
+        ROS_WARN("Pose not yet set -- won't perform geolocation.");
+        return;
+    }
+
+    // Extract the position measurement of each track
+    Eigen::MatrixX3d measurements(msg->tracks.size(), 3);
+    for (int i=0; i<msg->tracks.size(); i++) {
+        // for convenience
+        auto track = msg->tracks[i];
+
+        measurements.row(i) << track.position.x, track.position.y, cam_matrix_(0, 0);
+    }
+
+    transform(measurements, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+
+    // publish 3d track
 }
 
 // ----------------------------------------------------------------------------
 
-void Geolocator::cb_imu(const visual_mtt::TracksPtr& msg)
-{
-
-}
-
-// ----------------------------------------------------------------------------
-
-void Geolocator::transform(std::vector<geometry_msgs::Point>& measurements,
+void Geolocator::transform(const Eigen::MatrixX3d& pts,
         double pn, double pe, double pd,        // uav position north, east, down
         double phi, double theta, double psi,   // uav roll, pitch, yaw
         double gr, double gp, double gy)        // gimbal roll, pitch, yaw
 {
-    // // shift measurements so that the optical axis is through the center
-    // for (auto&& point : measurements) {
-    //     point.x -= _cameraModel->optical_x_offset;
-    //     point.y -= _cameraModel->optical_y_offset;
-    // }
+    // Incoming measurements are assumed to be in the normalized image plane
 
-    // // how many measurements are there?
-    // unsigned int N = measurements.size();
+    // how many measurements are there?
+    uint32_t N = pts.rows();
 
-    // // Convert Point2f vector to CV_32FC2 matrix, then reshape to CV_32FC1
-    // Mat tmp = Mat(measurements).reshape(1);
+    // ------------------------------------------------------------------------
+    // Compute equation (13.9) in UAV book      (pts == ell_unit_c)
+    // ------------------------------------------------------------------------
 
-    // // Add a third column for the focal length to the matrix, called pts
-    // Mat pts(N, 3, CV_32FC1, Scalar(_cameraModel->focal_length_px));
-    // tmp.copyTo(pts(Rect(0, 0, tmp.cols, tmp.rows))); // deep copy
+    // norm each row of the pts matrix
+    Eigen::VectorXd F = pts.rowwise().norm();
 
+    // Make the Nx1 matrix an Nx3 so we can divide
+    F = cv::repeat(F, 1, 3);
 
-    // // ------------------------------------------------------------------------
-    // // Compute equation (13.9) in UAV book      (pts == ell_unit_c)
-    // // ------------------------------------------------------------------------
+    // divide to normalize and create unit vectors in the camera frame
+    cv::divide(pts, F, pts);
 
-    // // norm each row of the pts matrix
-    // Mat F = pts.mul(pts);
-    // cv::reduce(F, F, 1, CV_REDUCE_SUM); // sum along rows, Nx1 matrix
-    // cv::sqrt(F, F);
-
-    // // Make the Nx1 matrix an Nx3 so we can divide
-    // F = cv::repeat(F, 1, 3);
-
-    // // divide to normalize and create unit vectors in the camera frame
-    // cv::divide(pts, F, pts);
-
-    // // ========================================================================
+    // ========================================================================
 
 
     // // Create the rotation from vehicle frame to camera frame
@@ -202,6 +222,8 @@ Eigen::Matrix3d Geolocator::R_g_to_c()
 
     return R;
 }
+
+// ----------------------------------------------------------------------------
 
 Eigen::Vector3d Geolocator::t_b_to_g()
 {

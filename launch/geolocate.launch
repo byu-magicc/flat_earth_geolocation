@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch>
+
+    <arg name="params"          default="default" />
+    <arg name="tuning"          default="false" />
+    <arg name="show_tracks"     default="true" />
+    <arg name="pub_output_img"  default="false" />
+    <arg name="imgtopic"        default="/image_raw" />
+
+    <!-- params:          name of .yaml contained the desired parameter values  -->
+    <!-- tuning:          enables dynamic reconfigure and displays measurements -->
+    <!-- show_tracks:     enables display of tracking results                   -->
+    <!-- pub_output_img:  enables publishing of the tracking result image       -->
+    <!-- imgtopic:        name of the topic that contains the video             -->
+
+    <!-- ###################################################################### -->
+
+
+    <!-- connect the geolocator to the output of visual_mtt -->
+    <node pkg="flat_earth_geolocation" type="geolocator" name="geolocator" output="screen">
+        <remap from="video" to="camera_sim/image_raw" />
+        <remap from="pose" to="mavros/local_position/pose" />
+    </node>
+
+</launch>
