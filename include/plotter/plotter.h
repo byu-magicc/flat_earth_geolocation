@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdint.h>
+#include <algorithm>
+
 #include <ros/ros.h>
 #include <tf/tf.h>
 
@@ -24,14 +27,6 @@ namespace plotter {
 
         ros::Publisher pub_uav_;
         ros::Publisher pub_tracks_;
-        // ros::Publisher mav0_label_pub_;
-        // ros::Publisher atv0_label_pub_;
-        // ros::Publisher atv1_label_pub_;
-        
-        // Messages
-        // visualization_msgs::Marker mav0_label_msg_;
-        // visualization_msgs::Marker atv0_label_msg_;
-        // visualization_msgs::Marker atv1_label_msg_;
 
         // Functions
         void cb_uav(const geometry_msgs::PoseStampedPtr& msg);

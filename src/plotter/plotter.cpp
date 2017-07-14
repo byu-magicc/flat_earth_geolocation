@@ -12,9 +12,6 @@ Plotter::Plotter() :
 
     pub_uav_    = nh_.advertise<geometry_msgs::PoseStamped>( "visualization/uav", 1 );
     pub_tracks_ = nh_.advertise<visualization_msgs::MarkerArray>( "visualization/tracks", 1 );
-    // mav0_label_pub_ = nh_.advertise<visualization_msgs::Marker>( "visualization/mav0/label", 1 );
-    // atv0_label_pub_ = nh_.advertise<visualization_msgs::Marker>( "visualization/atv0/label", 1 );
-    // atv1_label_pub_ = nh_.advertise<visualization_msgs::Marker>( "visualization/atv1/label", 1 );
 }
 
 // ----------------------------------------------------------------------------
@@ -40,17 +37,25 @@ void Plotter::cb_uav(const geometry_msgs::PoseStampedPtr& msg)
 
 void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
 {
-    visualization_msgs::MarkerArray mtracks;
 
+    static std::vector<uint32_t> recent_ids;
+    std::vector<uint32_t> current_ids(msg->tracks.size());
+
+    visualization_msgs::MarkerArray mtracks;
     for (int i=0; i<msg->tracks.size(); i++) {
         auto track = msg->tracks[i]; // for convenience
         
         visualization_msgs::Marker mtrack;
 
+        // id book-keeping
+        current_ids.push_back(track.id);
+        recent_ids.erase(std::remove(recent_ids.begin(), recent_ids.end(), track.id), recent_ids.end());
+
+        // new or existing tracks to publish
         mtrack.header = msg->header_update;
         mtrack.header.frame_id = "fcu";
         mtrack.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
-        // mtrack.action = visualization_msgs::Marker::ADD;
+        mtrack.action = visualization_msgs::Marker::ADD;
         mtrack.text = std::to_string(track.id);
         mtrack.id = track.id;
         mtrack.pose.position.x = track.position.x;
@@ -59,15 +64,24 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
         mtrack.scale.x = 1;
         mtrack.scale.y = 1;
         mtrack.scale.z = 1;
-        mtrack.color.a = 1.0; // Don't forget to set the alpha!
         mtrack.color.r = 1.0;
         mtrack.color.g = 1.0;
         mtrack.color.b = 1.0;
-
-
+        mtrack.color.a = 1.0;
 
         mtracks.markers.push_back(mtrack);
     }
+
+    // Now delete the recent_ids that did not show up this iteration
+    for (auto&& id : recent_ids) {
+        visualization_msgs::Marker mtrack;
+        mtrack.action = visualization_msgs::Marker::DELETE;
+        mtrack.id = id;
+        mtracks.markers.push_back(mtrack);
+    }
+
+    // Save the current_ids for the next iteration
+    recent_ids.swap(current_ids);
 
     pub_tracks_.publish(mtracks);
 }
