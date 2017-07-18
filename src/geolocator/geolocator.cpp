@@ -88,8 +88,10 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     double az    = 0;
     double el    = -M_PI/4;
     double groll = 0;
+
+    psi = M_PI;
     
-    transform(measurements, pn, pe, pd, 0, 0, 0, groll, el, az);
+    transform(measurements, pn, pe, pd, phi, theta, psi, groll, el, az);
 
     //
     // Publish 3D Tracks
@@ -106,9 +108,10 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         track.id = msg->tracks[i].id;
         track.inlier_ratio = msg->tracks[i].inlier_ratio;
 
+        // Convert from NED to NWU
         track.position.x = measurements(i, 0);
-        track.position.y = measurements(i, 1);
-        track.position.z = measurements(i, 2);
+        track.position.y = -measurements(i, 1);
+        track.position.z = -measurements(i, 2);
 
         new_msg.tracks.push_back(track);
     }
