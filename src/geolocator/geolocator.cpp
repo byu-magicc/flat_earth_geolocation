@@ -53,6 +53,17 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         return;
     }
 
+
+    tf::StampedTransform T;
+    try {
+        // Get the most recent transform
+        tf_listener_.lookupTransform("camera", "map", ros::Time(0), T);
+    } catch (tf::TransformException &ex) {
+        ROS_ERROR("[geolocator]: %s", ex.what());
+        ros::Duration(1.0).sleep(); // wait 1 second
+    }
+
+
     // Create a new tracks message for 3D points
     visual_mtt::Tracks new_msg;
 
@@ -73,23 +84,39 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     // Geolocate
     //
 
+    // // UAV Position
+    // double pn =  pose_->pose.position.x;
+    // double pe = -pose_->pose.position.y;
+    // double pd = -(pose_->pose.position.z + 6);
+
+    // // UAV Orientation: quaternion to euler angles
+    // double phi, theta, psi;
+    // tf::Quaternion tf_quat;
+    // tf::quaternionMsgToTF(pose_->pose.orientation, tf_quat);
+    // tf::Matrix3x3(tf_quat).getRPY(phi, theta, psi);
+
+    // // Gimbal Orientation (NASA has a fixed 45 degree camera)
+    // double az    = 0;
+    // double el    = -M_PI/4;
+    // double groll = 0;
+
+    // psi = M_PI;
+
     // UAV Position
-    double pn =  pose_->pose.position.x;
-    double pe = -pose_->pose.position.y;
-    double pd = -(pose_->pose.position.z + 6);
+    double pn = T.getOrigin().x();
+    double pe = T.getOrigin().y();
+    double pd = -T.getOrigin().z();
 
     // UAV Orientation: quaternion to euler angles
     double phi, theta, psi;
-    tf::Quaternion tf_quat;
-    tf::quaternionMsgToTF(pose_->pose.orientation, tf_quat);
+    tf::Quaternion tf_quat = T.getRotation();
     tf::Matrix3x3(tf_quat).getRPY(phi, theta, psi);
 
     // Gimbal Orientation (NASA has a fixed 45 degree camera)
     double az    = 0;
-    double el    = -M_PI/4;
+    double el    = 0;
     double groll = 0;
 
-    psi = M_PI;
     
     transform(measurements, pn, pe, pd, phi, theta, psi, groll, el, az);
 
@@ -260,6 +287,9 @@ Eigen::Matrix3d Geolocator::R_b_to_g(double r, double p, double y)
 
 Eigen::Matrix3d Geolocator::R_g_to_c()
 {
+
+    return Eigen::Matrix3d::Identity(3, 3);
+
     // Euler Rotation from the gimbal frame to camera frame
     Eigen::Matrix3d R;
     R << 0, 1, 0,

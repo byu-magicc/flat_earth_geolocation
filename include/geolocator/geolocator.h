@@ -8,6 +8,7 @@
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <tf/tf.h>
+#include <tf/transform_listener.h>
 
 #include <eigen3/Eigen/Dense>
 
@@ -35,6 +36,9 @@ namespace geolocator {
         // Camera parameters
         Eigen::Matrix3d cam_matrix_;
         bool is_cam_matrix_set_ = false;
+
+        // ROS tf listener and broadcaster
+        tf::TransformListener tf_listener_;
 
         // Most recent robot pose
         geometry_msgs::PoseStampedPtr pose_;
