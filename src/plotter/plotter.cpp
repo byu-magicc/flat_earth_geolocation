@@ -30,7 +30,7 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
 
         // new or existing tracks to publish
         mtrack.header = msg->header_update;
-        mtrack.header.frame_id = "fcu";
+        mtrack.header.frame_id = "map_ned";
         mtrack.type = visualization_msgs::Marker::TEXT_VIEW_FACING;
         mtrack.action = visualization_msgs::Marker::ADD;
         mtrack.text = std::to_string(track.id);

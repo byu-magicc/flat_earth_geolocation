@@ -47,20 +47,16 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         return;
     }
 
-    // we cannot geolocate until we have a robot pose
-    if (pose_ == nullptr) {
-        ROS_WARN("Pose not yet set -- won't perform geolocation.");
-        return;
-    }
-
+    std::string frame_source = "map";    
 
     tf::StampedTransform T;
     try {
         // Get the most recent transform
-        tf_listener_.lookupTransform("camera", "map", ros::Time(0), T);
+        tf_listener_.lookupTransform(frame_source, "camera", ros::Time(0), T);
     } catch (tf::TransformException &ex) {
         ROS_ERROR("[geolocator]: %s", ex.what());
-        ros::Duration(1.0).sleep(); // wait 1 second
+        ROS_WARN("Pose not yet set -- won't perform geolocation.");
+        return;
     }
 
 
@@ -74,51 +70,67 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     }
 
     // Extract the position measurement of each track
-    Eigen::MatrixX3d measurements(msg->tracks.size(), 3);
-    for (int i=0; i<msg->tracks.size(); i++) {
-        auto track = msg->tracks[i]; // for convenience
-        measurements.row(i) << track.position.x, track.position.y, 1;
-    }
+    // Eigen::MatrixX3d measurements(msg->tracks.size(), 3);
+    // for (int i=0; i<msg->tracks.size(); i++) {
+    //     auto track = msg->tracks[i]; // for convenience
+    //     measurements.row(i) << track.position.x, track.position.y, 1;
+    // }
+
+    Eigen::MatrixX3d measurements(5, 3);
+    measurements.row(0) << 0, 0, 1;         // 0
+    measurements.row(1) << 0.25, 0.25, 1;   // 1
+    measurements.row(2) << 0.25, -0.25, 1;  // 2
+    measurements.row(3) << -0.25, 0.25, 1;  // 3
+    measurements.row(4) << -0.25, -0.25, 1; // 4
 
     //
     // Geolocate
     //
 
-    // // UAV Position
-    // double pn =  pose_->pose.position.x;
-    // double pe = -pose_->pose.position.y;
-    // double pd = -(pose_->pose.position.z + 6);
-
-    // // UAV Orientation: quaternion to euler angles
-    // double phi, theta, psi;
-    // tf::Quaternion tf_quat;
-    // tf::quaternionMsgToTF(pose_->pose.orientation, tf_quat);
-    // tf::Matrix3x3(tf_quat).getRPY(phi, theta, psi);
-
-    // // Gimbal Orientation (NASA has a fixed 45 degree camera)
-    // double az    = 0;
-    // double el    = -M_PI/4;
-    // double groll = 0;
-
-    // psi = M_PI;
-
-    // UAV Position
-    double pn = T.getOrigin().x();
-    double pe = T.getOrigin().y();
-    double pd = -T.getOrigin().z();
+    // UAV Position (convert body-NWU to body-NED)
+    double pn =  pose_->pose.position.y;
+    double pe = pose_->pose.position.x;
+    double pd = -(pose_->pose.position.z + 6);
 
     // UAV Orientation: quaternion to euler angles
     double phi, theta, psi;
-    tf::Quaternion tf_quat = T.getRotation();
+    tf::Quaternion tf_quat;
+    tf::quaternionMsgToTF(pose_->pose.orientation, tf_quat);
     tf::Matrix3x3(tf_quat).getRPY(phi, theta, psi);
 
     // Gimbal Orientation (NASA has a fixed 45 degree camera)
     double az    = 0;
-    double el    = 0;
+    double el    = -M_PI/4;
     double groll = 0;
 
+    // convert body-NWU to body-NED
+    theta = -theta;
+    psi = -psi;
+
+    psi = M_PI/2;
+    // phi = 0;
+    psi += M_PI/2;
+
+    // // UAV Position
+    // double pn = T.getOrigin().x();
+    // double pe = T.getOrigin().y();
+    // double pd = T.getOrigin().z();
+
+    // // UAV Orientation: quaternion to euler angles
+    // double phi, theta, psi;
+    // tf::Quaternion tf_quat = T.getRotation();
+    // tf::Matrix3x3(tf_quat).getRPY(phi, theta, psi);
+
+    // // Gimbal Orientation (NASA has a fixed 45 degree camera)
+    // double az    = 0;
+    // double el    = 0;
+    // double groll = 0;
+
+    // phi = 0;
+    // theta = 0;
+
     
-    transform(measurements, pn, pe, pd, phi, theta, psi, groll, el, az);
+    transform(measurements, pn, pe, pd, phi, theta, psi, groll, el, az, T);
 
     //
     // Publish 3D Tracks
@@ -127,17 +139,34 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     // Create a new message and copy relevant information from old message
     new_msg.header_frame = msg->header_frame;
     new_msg.header_update.stamp = ros::Time::now();
+    new_msg.header_update.frame_id = frame_source;
     new_msg.util = msg->util;
-    for (int i=0; i<msg->tracks.size(); i++) {
+    // for (int i=0; i<msg->tracks.size(); i++) {
+    //     visual_mtt::Track track;
+
+    //     // Keep the same track id and inlier ratio
+    //     track.id = msg->tracks[i].id;
+    //     track.inlier_ratio = msg->tracks[i].inlier_ratio;
+
+    //     // Convert from NED to NWU
+    //     track.position.x = measurements(i, 0);
+    //     track.position.y = measurements(i, 1);
+    //     track.position.z = measurements(i, 2);
+
+    //     new_msg.tracks.push_back(track);
+    // }
+
+
+    for (int i=0; i<5; i++) {
         visual_mtt::Track track;
 
         // Keep the same track id and inlier ratio
-        track.id = msg->tracks[i].id;
-        track.inlier_ratio = msg->tracks[i].inlier_ratio;
+        track.id = i;
+        track.inlier_ratio = 0.9;
 
-        // Convert from NED to NWU
-        track.position.x = measurements(i, 0);
-        track.position.y = -measurements(i, 1);
+        // Convert from NED to ENU
+        track.position.x = measurements(i, 1);
+        track.position.y = measurements(i, 0);
         track.position.z = -measurements(i, 2);
 
         new_msg.tracks.push_back(track);
@@ -151,7 +180,8 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
 void Geolocator::transform(Eigen::MatrixX3d& measurements,
         double pn, double pe, double pd,        // uav position north, east, down
         double phi, double theta, double psi,   // uav roll, pitch, yaw
-        double gr, double gp, double gy)        // gimbal roll, pitch, yaw
+        double gr, double gp, double gy,        // gimbal roll, pitch, yaw
+        tf::StampedTransform T)
 {
     // Incoming measurements are assumed to be in the normalized image plane
 
@@ -176,6 +206,13 @@ void Geolocator::transform(Eigen::MatrixX3d& measurements,
 
     // Create the rotation from vehicle frame to camera frame
     Eigen::Matrix3d R_v_to_c = R_g_to_c() * R_b_to_g(gr, gp, gy) * R_v_to_b(phi, theta, psi);
+    Eigen::Affine3d e;
+    tf::transformTFToEigen(T, e);
+    // R_v_to_c = e.rotation();
+
+    std::cout << std::endl << pn << "\t" << pe << "\t" << pd << std::endl;
+    std::cout << phi*180/M_PI << "\t" << theta*180/M_PI << "\t" << psi*180/M_PI << std::endl;
+    std::cout << R_v_to_c << std::endl;
 
     // Rotate camera frame unit vectors (ell_unit_c) into vehicle frame
     // (see the numerator of RHS of (13.18) in UAV book)
@@ -287,9 +324,6 @@ Eigen::Matrix3d Geolocator::R_b_to_g(double r, double p, double y)
 
 Eigen::Matrix3d Geolocator::R_g_to_c()
 {
-
-    return Eigen::Matrix3d::Identity(3, 3);
-
     // Euler Rotation from the gimbal frame to camera frame
     Eigen::Matrix3d R;
     R << 0, 1, 0,

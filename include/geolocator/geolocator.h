@@ -9,6 +9,7 @@
 #include <image_transport/image_transport.h>
 #include <tf/tf.h>
 #include <tf/transform_listener.h>
+#include <tf_conversions/tf_eigen.h>
 
 #include <eigen3/Eigen/Dense>
 
@@ -52,7 +53,8 @@ namespace geolocator {
         void transform(Eigen::MatrixX3d& measurements,
                 double pn, double pe, double pd,        // uav position north, east, down
                 double phi, double theta, double psi,   // uav roll, pitch, yaw
-                double gr, double gp, double gy);       // gimbal roll, pitch, yaw
+                double gr, double gp, double gy,        // gimbal roll, pitch, yaw
+                tf::StampedTransform T);
 
         // Rotations for coordinate frame conversions
         Eigen::Matrix3d R_v2_to_b(double phi);
