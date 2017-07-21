@@ -50,11 +50,7 @@ namespace geolocator {
         void cb_tracks(const visual_mtt::TracksPtr& msg);
 
         // geolocation algorithm
-        void transform(Eigen::MatrixX3d& measurements,
-                double pn, double pe, double pd,        // uav position north, east, down
-                double phi, double theta, double psi,   // uav roll, pitch, yaw
-                double gr, double gp, double gy,        // gimbal roll, pitch, yaw
-                tf::StampedTransform T);
+        void transform(Eigen::MatrixX3d& measurements, tf::StampedTransform T);
 
         // Rotations for coordinate frame conversions
         Eigen::Matrix3d R_v2_to_b(double phi);
