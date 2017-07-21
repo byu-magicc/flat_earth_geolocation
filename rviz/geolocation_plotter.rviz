@@ -77,7 +77,7 @@ Visualization Manager:
       Frame Convention: XYZ -> ENU
       Name: AerialMapDisplay
       Object URI: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGx1c2swMSIsImEiOiJjajU1bTl5NzMwZG0xMnd1Z2h3ZTF2eWNoIn0.Ak2TYWakyX39rQPRflRCmg
-      Robot frame: map
+      Robot frame: base_link_ned
       Topic: /mavros/global_position/raw/fix
       Value: true
       Zoom: 18
@@ -141,7 +141,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 50.1416435
+      Distance: 124.148849
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -155,10 +155,10 @@ Visualization Manager:
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.589797258
+      Pitch: 0.809797347
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.986042023
+      Yaw: 0.501046956
     Saved: ~
 Window Geometry:
   Displays:
