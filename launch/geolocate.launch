@@ -18,11 +18,7 @@
 
     <!-- rviz 3d visualization of geolocated tracks -->
     <group if="$(arg show3d)">
-        <node pkg="flat_earth_geolocation" type="plotter" name="plotter" output="screen">
-            <remap from="tracks" to="tracks3d" />
-        </node>
-
-        <node pkg="rviz" type="rviz" name="rviz" args="-d $(find flat_earth_geolocation)/rviz/geolocation_plotter.rviz" />
+        <include file="$(find flat_earth_geolocation)/launch/visualize.launch" />
     </group>
 
 </launch>
