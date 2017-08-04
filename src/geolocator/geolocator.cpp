@@ -6,7 +6,7 @@ Geolocator::Geolocator()
 {
     // ROS stuff
     image_transport::ImageTransport it(nh_);
-    sub_cam_    = it.subscribeCamera("video", 1, &Geolocator::cb_cam, this);
+    sub_cam_    = it.subscribeCamera("camera/image_raw", 1, &Geolocator::cb_cam, this);
     sub_tracks_ = nh_.subscribe("tracks", 1, &Geolocator::cb_tracks, this);
     pub_tracks_ = nh_.advertise<visual_mtt::Tracks>("tracks3d", 1);
 }

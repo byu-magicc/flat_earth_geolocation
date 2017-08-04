@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Pose2
       Splitter Ratio: 0.5
     Tree Height: 540
   - Class: rviz/Selection
@@ -50,7 +51,7 @@ Visualization Manager:
       Value: true
     - Class: rviz/Image
       Enabled: true
-      Image Topic: /camera_sim/image_raw
+      Image Topic: /tracks_video
       Max Value: 1
       Median window: 5
       Min Value: 0
@@ -98,9 +99,9 @@ Visualization Manager:
       Value: false
     - Class: rviz/Axes
       Enabled: true
-      Length: 1
+      Length: 2
       Name: Pose
-      Radius: 0.100000001
+      Radius: 0.75
       Reference Frame: base_link_ned
       Value: true
     - Class: rviz/Axes
@@ -155,10 +156,10 @@ Visualization Manager:
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.809797347
+      Pitch: 0.954797208
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.501046956
+      Yaw: 2.07604933
     Saved: ~
 Window Geometry:
   Displays:
