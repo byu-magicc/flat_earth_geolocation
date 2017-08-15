@@ -49,7 +49,7 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
         // This probably removes the need for the id book-keeping code
         // but I'm going to leave it in for 'robustness'.
         // (i.e., I'm too lazy to remove it)
-        mtrack.lifetime = ros::Duration(0.1);
+        mtrack.lifetime = ros::Duration(0.5);
 
         mtracks_add.markers.push_back(mtrack);
     }
