@@ -6,6 +6,9 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
+        - /Grid1
+        - /Tracks1/Status1
+        - /AerialMapDisplay1
         - /Pose2
       Splitter Ratio: 0.5
     Tree Height: 540
@@ -70,16 +73,16 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Alpha: 0.699999988
-      Blocks: 1
+      Blocks: 8
       Class: rviz_plugins/AerialMapDisplay
       Draw Behind: true
-      Dynamically reload: true
+      Dynamically reload: false
       Enabled: true
       Frame Convention: XYZ -> ENU
       Name: AerialMapDisplay
-      Object URI: https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoicGx1c2swMSIsImEiOiJjajU1bTl5NzMwZG0xMnd1Z2h3ZTF2eWNoIn0.Ak2TYWakyX39rQPRflRCmg
-      Robot frame: base_link_ned
-      Topic: /mavros/global_position/raw/fix
+      Object URI: http://mt.google.com/vt/lyrs=s&x={x}&y={y}&z={z}
+      Robot frame: map
+      Topic: /mavros/global_position/global
       Value: true
       Zoom: 18
     - Alpha: 1
@@ -142,24 +145,24 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 124.148849
+      Distance: 115.357399
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -4.00066566
-        Y: -0.996602356
-        Z: 2.45908403
+        X: 15.1547699
+        Y: 50.6339149
+        Z: -19.8977947
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.954797208
+      Pitch: 0.539797187
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 2.07604933
+      Yaw: 5.80923605
     Saved: ~
 Window Geometry:
   Displays:

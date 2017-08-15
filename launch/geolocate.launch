@@ -3,9 +3,11 @@
 
     <arg name="show3d"          default="false" />
     <arg name="camera_name"     default="camera" />
+    <arg name="tracks_topic"    default="tracks" />
 
     <!-- show3d:          Show the rviz vizualization of the geolocated targets -->
     <!-- camera_name:     Name of the camera to subscribe to: camera/image_raw  -->
+    <!-- tracks_topic:    topic name of R-RANSAC output tracks                  -->
 
     <!-- ###################################################################### -->
 
@@ -14,6 +16,7 @@
     <node pkg="flat_earth_geolocation" type="geolocator" name="geolocator" output="screen">
         <remap from="camera/image_raw" to="$(arg camera_name)/image_raw" />
         <remap from="pose" to="mavros/local_position/pose" />
+        <remap from="tracks" to="$(arg tracks_topic)" />
     </node>
 
     <!-- rviz 3d visualization of geolocated tracks -->

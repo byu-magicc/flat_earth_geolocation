@@ -39,7 +39,7 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
         mtrack.pose.position.z = track.position.z;
         mtrack.scale.x = 1;
         mtrack.scale.y = 1;
-        mtrack.scale.z = 1;
+        mtrack.scale.z = 4; // only 'z' is used for text
         mtrack.color.r = 1.0;
         mtrack.color.g = 1.0;
         mtrack.color.b = 1.0;
