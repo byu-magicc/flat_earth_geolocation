@@ -45,6 +45,12 @@ void Plotter::cb_tracks(const visual_mtt::TracksPtr& msg)
         mtrack.color.b = 1.0;
         mtrack.color.a = 1.0;
 
+        // Give the track a short lifetime so stale data is deleted.
+        // This probably removes the need for the id book-keeping code
+        // but I'm going to leave it in for 'robustness'.
+        // (i.e., I'm too lazy to remove it)
+        mtrack.lifetime = ros::Duration(0.1);
+
         mtracks_add.markers.push_back(mtrack);
     }
 
