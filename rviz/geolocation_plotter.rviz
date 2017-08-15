@@ -7,9 +7,6 @@ Panels:
         - /Global Options1
         - /Status1
         - /Grid1
-        - /Tracks1/Status1
-        - /AerialMapDisplay1
-        - /Pose2
       Splitter Ratio: 0.5
     Tree Height: 540
   - Class: rviz/Selection
@@ -145,7 +142,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 115.357399
+      Distance: 503.361176
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -159,10 +156,10 @@ Visualization Manager:
       Focal Shape Size: 0.0500000007
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.539797187
+      Pitch: 1.00479674
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.80923605
+      Yaw: 0.0910515413
     Saved: ~
 Window Geometry:
   Displays:
