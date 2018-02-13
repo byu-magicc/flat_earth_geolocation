@@ -48,10 +48,12 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         // Get the most recent transform
         tf_listener_.lookupTransform(frame_source, "camera", ros::Time(0), T);
     } catch (tf::TransformException &ex) {
-        ROS_ERROR("[geolocator]: %s", ex.what());
-        ROS_WARN("Pose not yet set -- won't perform geolocation.");
+        ROS_ERROR_DELAYED_THROTTLE(10, "[geolocator]: %s", ex.what());
+        ROS_WARN_DELAYED_THROTTLE(10, "Pose not yet set -- won't perform geolocation.");
         return;
     }
+
+    ROS_INFO_ONCE("[geolocator] Transform from TF free has been found.");
 
 
     // Create a new tracks message for 3D points
