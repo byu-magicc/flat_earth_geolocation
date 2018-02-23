@@ -9,6 +9,11 @@ Geolocator::Geolocator()
     sub_cam_    = it.subscribeCamera("camera/image_raw", 1, &Geolocator::cb_cam, this);
     sub_tracks_ = nh_.subscribe("tracks", 1, &Geolocator::cb_tracks, this);
     pub_tracks_ = nh_.advertise<visual_mtt::Tracks>("tracks3d", 1);
+
+    // get relevant tf frames
+    ros::NodeHandle nh_private("~");
+    nh_private.param<std::string>("result_frame", result_frame_, "map_ned");
+    nh_private.param<std::string>("camera_frame", camera_frame_, "camera");
 }
 
 // ----------------------------------------------------------------------------
@@ -39,14 +44,13 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         return;
     }
 
-    // Find the transform between the `source` and the camera. This transform
+    // Find the transform between the `result_frame_` and the camera. This transform
     // puts measurements from the camera frame into the `source` frame.
 
     tf::StampedTransform T;
-    std::string frame_source = "map_ned";
     try {
         // Get the most recent transform
-        tf_listener_.lookupTransform(frame_source, "camera", ros::Time(0), T);
+        tf_listener_.lookupTransform(result_frame_, camera_frame_, ros::Time(0), T);
     } catch (tf::TransformException &ex) {
         ROS_ERROR_DELAYED_THROTTLE(10, "[geolocator]: %s", ex.what());
         ROS_WARN_DELAYED_THROTTLE(10, "Pose not yet set -- won't perform geolocation.");
@@ -76,6 +80,8 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     // Geolocate
     //
     
+    // Measurements are assumed to be in normalized image plane (i.e., not pixels)
+    // T is the transform from the world to the camera
     transform(measurements, T);
 
     //
@@ -85,7 +91,7 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     // Create a new message and copy relevant information from old message
     new_msg.header_frame = msg->header_frame;
     new_msg.header_update.stamp = ros::Time::now();
-    new_msg.header_update.frame_id = frame_source;
+    new_msg.header_update.frame_id = result_frame_;
     new_msg.util = msg->util;
     for (int i=0; i<msg->tracks.size(); i++) {
         visual_mtt::Track track;
@@ -94,7 +100,7 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
         track.id = msg->tracks[i].id;
         track.inlier_ratio = msg->tracks[i].inlier_ratio;
 
-        // Measurements are made in the `frame_source`
+        // Measurements are made in the `result_frame_`
         track.position.x = measurements(i, 0);
         track.position.y = measurements(i, 1);
         track.position.z = measurements(i, 2);
@@ -135,8 +141,7 @@ void Geolocator::transform(Eigen::MatrixX3d& measurements, tf::StampedTransform 
     // ========================================================================
 
 
-    // Create the rotation from vehicle frame to camera frame
-    // Eigen::Matrix3d R_c_to_v = (R_g_to_c() * R_b_to_g(gr, gp, gy) * R_v_to_b(phi, theta, psi)).transpose();
+    // Create the rotation from camera frame to vehicle frame
     Eigen::Affine3d e;
     tf::transformTFToEigen(T, e);
     Eigen::Matrix3d R_c_to_v = e.rotation();
@@ -183,7 +188,6 @@ void Geolocator::transform(Eigen::MatrixX3d& measurements, tf::StampedTransform 
     Eigen::Matrix3Xd offset = Eigen::Matrix3Xd::Zero(3, N);
 
     // Based on the line-of-sight vector, find the inertial object points
-    // Mat P_obj_i = P_mav_i + offset + L.mul(ell_unit_v);
     Eigen::Matrix3Xd P_obj_i = P_mav_i + offset + (Lmat.array() * ell_unit_v.array()).matrix();
 
     // ========================================================================

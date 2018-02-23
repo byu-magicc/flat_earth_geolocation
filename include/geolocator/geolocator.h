@@ -40,6 +40,10 @@ namespace geolocator {
         // ROS tf listener and broadcaster
         tf::TransformListener tf_listener_;
 
+        // Relevant tf frames
+        std::string result_frame_; // In what frame should geolocations end up?
+        std::string camera_frame_; // What is the name of the camera frame that measurements are received in?
+
         // ROS callbacks
         void cb_cam(const sensor_msgs::ImageConstPtr& frame, const sensor_msgs::CameraInfoConstPtr& cinfo);
         void cb_tracks(const visual_mtt::TracksPtr& msg);
