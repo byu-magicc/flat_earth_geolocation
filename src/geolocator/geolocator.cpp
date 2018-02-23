@@ -192,18 +192,4 @@ void Geolocator::transform(Eigen::MatrixX3d& measurements, tf::StampedTransform 
     measurements = P_obj_i.transpose();
 }
 
-// ----------------------------------------------------------------------------
-
-Eigen::Vector3d Geolocator::t_b_to_g()
-{
-    // translation from body to gimbal
-    // TODO: abstract out and make a parameter
-    Eigen::Vector3d t;
-    t << 0.2,
-         0.0,
-         0.1;
-
-    return t;
-}
-
 }

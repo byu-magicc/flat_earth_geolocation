@@ -46,9 +46,6 @@ namespace geolocator {
 
         // geolocation algorithm
         void transform(Eigen::MatrixX3d& measurements, tf::StampedTransform T);
-
-        // Rotations for coordinate frame conversions
-        Eigen::Vector3d t_b_to_g();
     };
 
 }
