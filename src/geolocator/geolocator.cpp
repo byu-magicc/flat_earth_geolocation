@@ -92,7 +92,7 @@ void Geolocator::cb_tracks(const visual_mtt::TracksPtr& msg)
     new_msg.header_frame = msg->header_frame;
     new_msg.header_update.stamp = ros::Time::now();
     new_msg.header_update.frame_id = result_frame_;
-    new_msg.util = msg->util;
+    // new_msg.util = msg->util;
     for (int i=0; i<msg->tracks.size(); i++) {
         visual_mtt::Track track;
 

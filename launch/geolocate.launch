@@ -4,10 +4,14 @@
     <arg name="show3d"          default="false" />
     <arg name="camera_name"     default="camera" />
     <arg name="tracks_topic"    default="tracks" />
+    <arg name="result_frame"    default="map_ned" />
+    <arg name="camera_frame"    default="camera" />
 
     <!-- show3d:          Show the rviz vizualization of the geolocated targets -->
     <!-- camera_name:     Name of the camera to subscribe to: camera/image_raw  -->
     <!-- tracks_topic:    topic name of R-RANSAC output tracks                  -->
+    <!-- result_frame:    tf frame w.r.t which geolocated tracks are measured   -->
+    <!-- camera_frame:    tf frame in which incoming measurements exist         -->
 
     <!-- ###################################################################### -->
 
@@ -17,6 +21,9 @@
         <remap from="camera/image_raw" to="$(arg camera_name)/image_raw" />
         <remap from="pose" to="mavros/local_position/pose" />
         <remap from="tracks" to="$(arg tracks_topic)" />
+
+        <param name="result_frame" value="$(arg result_frame)" />
+        <param name="camera_frame" value="$(arg camera_frame)" />
     </node>
 
     <!-- rviz 3d visualization of geolocated tracks -->
